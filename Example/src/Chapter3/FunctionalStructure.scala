@@ -128,4 +128,26 @@ object List {
   // 3.19
   def filter[A](as: List[A])(f: A => Boolean): List[A] =
     foldRight(as, Nil: List[A])((a, b) => if(f(a)) Cons(a, b) else b)
+
+  // 3.20
+  def flatMap[A, B](as: List[A])(f: A => List[B]): List[B] =
+    foldRight(as, Nil: List[B])((a, b) => append(f(a), b))
+
+  // 3.21
+  def filterViaFlatMap[A](as: List[A])(f: A => Boolean): List[A] =
+    flatMap(as)(a => if (f(a)) List(a) else Nil)
+
+  // 3.22
+  def add(as: List[Int], bs: List[Int]): List[Int] = (as, bs) match {
+    case (Nil, _) => Nil
+    case (_, Nil) => Nil
+    case (Cons(asH, asT), Cons(bsH, bsT)) => Cons(asH + bsH, add(asT, bsT))
+  }
+
+  // 3.23
+  def zipWith[A, B, C](as: List[A], bs: List[B])(f: (A, B) => C): List[C] = (as, bs) match {
+    case (Nil, _) => Nil
+    case (_, Nil) => Nil
+    case (Cons(asH, asT), Cons(bsH, bsT)) => Cons(f(asH, bsH), zipWith(asT, bsT)(f))
+  }
 }
