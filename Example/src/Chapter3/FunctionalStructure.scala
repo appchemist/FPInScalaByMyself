@@ -150,4 +150,38 @@ object List {
     case (_, Nil) => Nil
     case (Cons(asH, asT), Cons(bsH, bsT)) => Cons(f(asH, bsH), zipWith(asT, bsT)(f))
   }
+
+  // TODO : 3.24
+}
+
+sealed trait Tree[+A]
+case class Leaf[A](value: A) extends Tree[A]
+case class Branch[A](left: Tree[A], right: Tree[A]) extends Tree[A]
+
+object Tree {
+  // 3.25
+  def size[A](ts: Tree[A]): Int = ts match {
+    case Leaf(_) => 1
+    case Branch(l, r) => size(l) + size(r) + 1
+  }
+
+  // 3.26
+  def maximum(ts: Tree[Int]): Int = ts match {
+    case Leaf(v) => v
+    case Branch(l, r) => maximum(l) max maximum(r)
+  }
+
+  // 3.27
+  def depth[A](ts: Tree[A]): Int = ts match {
+    case Leaf(v) => 1
+    case Branch(l, r) => depth(l) max depth(r) + 1
+  }
+
+  // 3.28
+  def map[A, B](ts: Tree[A])(f: A => B): Tree[B] = ts match {
+    case Leaf(v) => Leaf(f(v))
+    case Branch(l, r) => Branch(map(l)(f), map(r)(f))
+  }
+
+  // TODO : 3.29
 }
