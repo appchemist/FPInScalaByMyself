@@ -1,9 +1,13 @@
 package Chapter5
 
+import Chapter4._
+
 /**
   * Created by appchemist on 2016. 5. 18..
   */
 sealed trait Stream[+A] {
+  def empty[A]: Stream[A] = Empty
+
   // 5.1
   def toList: List[A] = this match {
     case Empty => Nil
@@ -50,8 +54,28 @@ sealed trait Stream[+A] {
     foldRight(true)((a, b) => p(a) && b)
 
   // 5.5
-  def takeWhile(p: A => Boolean): Stream[A] =
-    foldRight(Empty)((a, b) => if (p(a)) Stream.cons(a, b) else Empty)
+  def takeWhileViaFoldRight(p: A => Boolean): Stream[A] =
+    foldRight(Empty: Stream[A])((a, b) => if (p(a)) Stream.cons(a, b) else Empty)
+
+  // 5.6
+  def headOptionViaFoldRight: Option[A] =
+    foldRight(None: Option[A])((a, b) => Some(a))
+
+  // 5.7
+  def map[B](f: A => B): Stream[B] =
+    foldRight(Empty: Stream[B])((a, b) => Stream.cons(f(a), b))
+
+  // 5.7
+  def filter(f: A => Boolean): Stream[A] =
+    foldRight(Empty: Stream[A])((a, b) => if (f(a)) Stream.cons(a, b) else b)
+
+  // 5.7
+  def append[B>:A](other: Stream[B]): Stream[B] =
+    foldRight(other)(Stream.cons(_, _))
+
+  // 5.7
+  def flatMap[B](f: A => Stream[B]): Stream[B] =
+    foldRight(Empty: Stream[B])((a, b) => f(a).append(b))
 }
 case object Empty extends Stream[Nothing]
 case class Cons[+A](h: () => A, t: () => Stream[A]) extends Stream[A]
@@ -63,8 +87,6 @@ object Stream {
     Cons(() => head, () => tail)
   }
 
-  def empty[A]: Stream[A] = Empty
-
   def apply[A](as: A*): Stream[A] =
-    if (as.isEmpty) empty else cons(as.head, apply(as.tail: _*))
+    if (as.isEmpty) Empty: Stream[A] else cons(as.head, apply(as.tail: _*))
 }
