@@ -76,6 +76,23 @@ sealed trait Stream[+A] {
   // 5.7
   def flatMap[B](f: A => Stream[B]): Stream[B] =
     foldRight(Empty: Stream[B])((a, b) => f(a).append(b))
+
+  // 5.13
+  def zipAll[B](s2: Stream[B]): Stream[(Option[A], Option[B])] =
+    Stream.unfold((this, s2)) {
+      case (Empty, Empty)             => None
+      case (Cons(h, t), Empty)        => Some((Some(h()), None),            (t(), Empty: Stream[B]))
+      case (Empty, Cons(h2, t2))      => Some((None:Option[A], Some(h2())), (Empty: Stream[A], t2()))
+      case (Cons(h, t), Cons(h2, t2)) => Some((Some(h()), Some(h2())),      (t(), t2()))
+    }
+
+  // 5.14
+  def startWith[A](s: Stream[A]): Boolean =
+    zipAll(s).foldAll{
+      case (Some(a), Some(b)) if (a != b) => false
+      case (None, Some(b)) => false
+      case _ => true
+    }
 }
 case object Empty extends Stream[Nothing]
 case class Cons[+A](h: () => A, t: () => Stream[A]) extends Stream[A]
