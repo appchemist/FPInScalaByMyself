@@ -112,7 +112,7 @@ object RNG {
   val randIntDouble: Rand[(Int, Double)] =
     both(int, double)
 
-  val randDoubleInt: Rnad[(Double, Int)] =
+  val randDoubleInt: Rand[(Double, Int)] =
     both(double, int)
 }
 
