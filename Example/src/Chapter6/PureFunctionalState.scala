@@ -114,5 +114,9 @@ object RNG {
 
   val randDoubleInt: Rand[(Double, Int)] =
     both(double, int)
+
+//  def sequence[A](fs: List[Rand[A]]): Rand[List[A]] = {
+//    if ()
+//  }
 }
 
