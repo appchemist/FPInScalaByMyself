@@ -186,4 +186,26 @@ object State {
   // 6.10
   def sequence[S, A](fs: List[State[S, A]]): State[S, List[A]] =
     fs.foldRight(unit[S, List[A]](List()))((r, l) => r.map2(l)(_ :: _))
+
+  def modify[S](f: S => S): State[S, Unit] = for {
+    s <- get
+    _ <- set(f(s))
+  } yield()
+
+  def get[S]: State[S, S] = State(s => (s, s))
+  def set[S](s: S): State[S, Unit] = State(_ => ((), s))
+}
+
+
+sealed trait Input
+case object Coin extends Input
+case object Turn extends Input
+
+case class Machine(locked: Boolean, candies: Int, coins: Int) {
+  def simulateMachine(inputs: List[Input]): State[Machine, (Int, Int)] = inputs match {
+    case Coin :: t => Machine(false, candies, coins + 1).simulateMachine(t)
+    case Turn :: t if locked => Machine(locked, candies, coins).simulateMachine(t)
+    case Turn :: t => Machine(true, candies - 1, coins).simulateMachine(t)
+    case Nil => State.unit((coins, candies))
+  }
 }
