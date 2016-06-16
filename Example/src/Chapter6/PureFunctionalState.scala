@@ -78,6 +78,7 @@ object RNG {
   }
 
   type Rand[+A] = RNG => (A, RNG)
+//  type Rand[+A] = State[RNG, A]
 
   val int: Rand[Int] = _.nextInt
 
@@ -155,4 +156,34 @@ object RNG {
 
   def intsViaSequence2(count: Int): Rand[List[Int]] =
     sequence2(List.fill(count)(nonNegativeInt))
+
+  def rollDie: Rand[Int] = map(nonNegativeLessThan(6))(_ + 1)
+}
+
+case class State[S, +A](run: S => (A, S)) {
+  // 6.10
+  def flatMap[B](f: A => State[S, B]): State[S, B] = State(s => {
+    val (a, s2) = run(s)
+    f(a).run(s2)
+  })
+
+  // 6.10
+  def map[B](f: A => B): State[S, B] =
+    flatMap(i => State.unit(f(i)))
+
+  // 6.10
+  def map2[B, C](sb: State[S, B])(f: (A, B)=> C): State[S, C] =
+    flatMap(i => sb.map(f(i, _)))
+}
+
+object State {
+  type Rand[A] = State[RNG, A]
+
+  // 6.10
+  def unit[S, A](a: A): State[S, A] =
+    State(s => (a, s))
+
+  // 6.10
+  def sequence[S, A](fs: List[State[S, A]]): State[S, List[A]] =
+    fs.foldRight(unit[S, List[A]](List()))((r, l) => r.map2(l)(_ :: _))
 }
